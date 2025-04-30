@@ -10,7 +10,7 @@ app = Flask(__name__)
 CORS(app)
 
 # MongoDB Atlas URI desde variable de entorno
-MONGO_URI = os.environ.get("MONGO_URI")
+MONGO_URI = "mongodb+srv://AG604:<1234>@cluster0.hayq5wx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 client = MongoClient(MONGO_URI)
 db = client["ESP-32"]
 collection = db["Datos"]
