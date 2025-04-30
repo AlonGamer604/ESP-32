@@ -1,0 +1,13 @@
+services:
+- type: web
+  name: ESP-32
+  runtime: python
+  repo: https://github.com/AlonGamer604/ESP-32.git
+  plan: free
+  envVars:
+  - key: MONGO_URI
+    value: mongodb+srv://AG604:<1234>@cluster0.thdzy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+  region: oregon
+  buildCommand: pip install -r requirements.txt
+  startCommand: python app.py
+version: "1"
