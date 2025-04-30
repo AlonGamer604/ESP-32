@@ -1,28 +1,51 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+import os
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from pymongo import MongoClient
+from datetime import datetime, timedelta
+from pytz import timezone
+from zoneinfo import ZoneInfo
 
-# Environment
-.env
-.venv/
-venv/
-ENV/
-env/
-env.bak/
-venv.bak/
+app = Flask(__name__)
+CORS(app)
 
-# Mac OS
-.DS_Store
+# MongoDB Atlas URI desde variable de entorno
+MONGO_URI = os.environ.get("MONGO_URI")
+client = MongoClient(MONGO_URI)
+db = client["ESP-32"]
+collection = db["Datos"]
 
-# VS Code
-.vscode/
+# Ruta para recibir datos del ESP32
+@app.route("/api/data", methods=["POST"])
+def recibir_dato():
+    data = request.get_json()
+    required_keys = ["dispositivo", "temperatura", "humedad"]
+    if not all(k in data for k in required_keys):
+        return jsonify({"error": "Faltan campos en el JSON"}), 400
 
-# Pytest
-.pytest_cache/
+    documento = {
+        "dispositivo": data["dispositivo"],
+        "temperatura": data["temperatura"],
+        "humedad": data["humedad"],
+        "timestamp": datetime.utcnow() - timedelta(hours=6)
+    }
 
-# Log files
-*.log
+    collection.insert_one(documento)
+    return jsonify({"message": "Datos guardados correctamente"}), 200
 
-# Render local settings
-render-local.json
+# Ruta para ver los últimos 50 datos
+@app.route("/api/datos", methods=["GET"])
+def ver_datos():
+    datos = list(collection.find().sort("timestamp", -1).limit(50))
+    for d in datos:
+        d["_id"] = str(d["_id"])
+        d["timestamp"] = d["timestamp"].isoformat()
+
+    return jsonify(datos), 200
+
+@app.route("/", methods=["GET"])
+def index():
+    return "API Flask con MongoDB funcionando en Render", 200
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
