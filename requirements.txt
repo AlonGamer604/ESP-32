@@ -2,5 +2,5 @@ flask
 pymongo
 flask-cors
 pytz
-gunicorn main:app
+gunicorn
 
